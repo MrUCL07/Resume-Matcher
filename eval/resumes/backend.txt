@@ -1,0 +1,20 @@
+Asha Menon
+asha.menon@example.com | +91 98765 43210
+
+SUMMARY
+Backend developer with 3 years of experience building and scaling web services.
+
+SKILLS
+Python, FastAPI, Django, PostgreSQL, Redis, Docker, REST APIs, Git, Linux
+
+EXPERIENCE
+Software Engineer - Brightline Systems (2022 - 2025)
+- Built REST APIs in FastAPI serving 2M requests per day, backed by PostgreSQL.
+- Cut query latency by 40% by adding indexes and Redis caching.
+- Containerised services with Docker and automated releases.
+
+PROJECTS
+URL shortener - Django service with Redis rate limiting.
+
+EDUCATION
+B.E. Computer Science, 2022

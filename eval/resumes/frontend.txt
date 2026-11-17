@@ -1,0 +1,20 @@
+Ravi Kumar
+ravi.kumar@example.com | +91 91234 56789
+
+SUMMARY
+Frontend developer who enjoys building fast, accessible interfaces.
+
+SKILLS
+JavaScript, TypeScript, React, Next.js, HTML, CSS, Tailwind CSS, Figma, Jest
+
+EXPERIENCE
+Frontend Developer - Pixelcraft (2021 - 2025)
+- Built a React and Next.js storefront used by 100k monthly visitors.
+- Turned Figma designs into responsive pages with Tailwind CSS.
+- Wrote unit tests with Jest and consumed REST APIs from the backend team.
+
+PROJECTS
+Portfolio builder - React app with drag and drop sections.
+
+EDUCATION
+B.Sc. Computer Science, 2021

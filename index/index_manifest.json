@@ -1,0 +1,11 @@
+{
+  "format_version": 1,
+  "vector_store": "FAISS IndexFlatIP",
+  "similarity": "cosine",
+  "vectors_l2_normalized": true,
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "embedding_dimension": 384,
+  "vector_count": 20,
+  "metadata_file": "jobs_meta.json",
+  "index_file": "jobs.faiss"
+}

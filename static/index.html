@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resume Matcher</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1d2430; --muted:#5f6b7a; --line:#e2e6ec; --accent:#2f5bea;
+          --good:#137a4b; --good-bg:#e4f5ec; --bad:#a4262c; --bad-bg:#fbe9ea; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12151a; --card:#1b2027; --text:#e8ebf0; --muted:#9aa5b4; --line:#2c333d; --accent:#7b9bff;
+            --good:#5fd39a; --good-bg:#12301f; --bad:#ff8f95; --bad-bg:#3a1a1c; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:1.6rem; margin:0 0 4px; }
+  p.sub { color:var(--muted); margin:0 0 20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:16px; }
+  .upload { display:flex; flex-direction:column; gap:14px; }
+  input[type=file] { display:none; }
+  .drop { border:2px dashed var(--line); border-radius:12px; padding:26px 16px; text-align:center; cursor:pointer;
+          color:var(--muted); transition:border-color .15s, background .15s; }
+  .drop:hover, .drop.over { border-color:var(--accent); background:color-mix(in srgb, var(--accent) 7%, transparent); }
+  .drop strong { color:var(--accent); }
+  .drop .icon { font-size:1.8rem; display:block; margin-bottom:4px; }
+  .file { display:flex; align-items:center; gap:12px; border:1px solid var(--good); background:var(--good-bg);
+          border-radius:12px; padding:12px 14px; }
+  .file[hidden], .drop[hidden], .progress[hidden] { display:none; }
+  .file .tick { width:28px; height:28px; border-radius:50%; background:var(--good); color:#fff; display:flex;
+                align-items:center; justify-content:center; font-weight:700; flex:none; }
+  .file .info { flex:1; min-width:0; }
+  .file .name { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); }
+  .file .state { font-size:.85rem; color:var(--good); }
+  .file .remove { background:transparent; color:var(--muted); border:1px solid var(--line); padding:4px 10px; font-size:.85rem; }
+  .progress { height:8px; background:var(--line); border-radius:4px; overflow:hidden; }
+  .progress > span { display:block; height:100%; width:0; background:var(--accent); transition:width .15s; }
+  .progress.busy > span { width:100% !important; animation:pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity:.35; } 50% { opacity:1; } }
+  button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:10px 18px; font-size:1rem; cursor:pointer; }
+  button:disabled { opacity:.55; cursor:default; }
+  .note { font-size:.85rem; color:var(--muted); margin-top:10px; }
+  .err { color:var(--bad); background:var(--bad-bg); border-radius:8px; padding:10px 12px; margin-bottom:16px; }
+  .warn { color:var(--muted); font-size:.9rem; margin-bottom:12px; }
+  .head { display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+  .head h3 { margin:0; font-size:1.1rem; }
+  .company { color:var(--muted); font-size:.9rem; }
+  .score { font-size:1.4rem; font-weight:700; color:var(--accent); white-space:nowrap; }
+  .bar { height:6px; background:var(--line); border-radius:3px; margin:8px 0 12px; overflow:hidden; }
+  .bar > span { display:block; height:100%; background:var(--accent); }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 10px; }
+  .chip { font-size:.82rem; padding:2px 9px; border-radius:999px; }
+  .chip.good { background:var(--good-bg); color:var(--good); }
+  .chip.bad { background:var(--bad-bg); color:var(--bad); }
+  .label { font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-top:10px; }
+  ul { margin:6px 0 0 18px; padding:0; }
+  .quote { color:var(--muted); font-size:.85rem; }
+  details { margin-top:8px; }
+  summary { cursor:pointer; color:var(--muted); font-size:.9rem; }
+  .meta { font-size:.8rem; color:var(--muted); margin-top:10px; }
+  .vector-metrics { margin-top:12px; padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:color-mix(in srgb, var(--accent) 4%, var(--card)); }
+  .vector-metrics ul { margin-top:4px; }
+  .vector-metrics li { margin:3px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Resume ↔ Job Matcher</h1>
+  <p class="sub">Upload your resume to see the best matching jobs, what you already cover, and what is missing.</p>
+
+  <div class="card">
+    <div class="upload">
+      <input type="file" id="file" accept=".pdf,.docx,.txt">
+      <label class="drop" id="drop" for="file">
+        <span class="icon">📄</span>
+        <strong>Choose your resume</strong> or drag and drop it here<br>
+        <span class="note">PDF, DOCX or TXT, up to 2 MB</span>
+      </label>
+      <div class="file" id="fileCard" hidden>
+        <div class="tick">✓</div>
+        <div class="info">
+          <div class="name" id="fileName"></div>
+          <div class="state" id="fileState"></div>
+        </div>
+        <button class="remove" id="remove" type="button">Remove</button>
+      </div>
+      <div class="progress" id="progress" hidden><span id="progressBar"></span></div>
+      <button id="go" disabled>Find matches</button>
+    </div>
+    <p class="note">PDF, DOCX or TXT, up to 2 MB. Your resume is processed in memory only and is never stored.
+      Emails, phone numbers and links are removed before any AI model sees the text.</p>
+  </div>
+
+  <div id="status"></div>
+  <div id="results"></div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+// Build elements with textContent only, so model output can never inject HTML.
+function el(tag, cls, text) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+function chips(items, cls) {
+  const wrap = el("div", "chips");
+  items.forEach((s) => wrap.appendChild(el("span", "chip " + cls, s)));
+  return wrap;
+}
+
+function renderMatch(m) {
+  const card = el("div", "card");
+  const head = el("div", "head");
+  const titleBox = el("div");
+  titleBox.appendChild(el("h3", "", m.title));
+  titleBox.appendChild(el("div", "company", m.company));
+  head.appendChild(titleBox);
+  head.appendChild(el("div", "score", m.score.toFixed(0) + "%"));
+  card.appendChild(head);
+
+  const bar = el("div", "bar");
+  const fill = el("span");
+  fill.style.width = Math.max(2, Math.min(100, m.score)) + "%";
+  bar.appendChild(fill);
+  card.appendChild(bar);
+
+  const a = m.analysis || {};
+  if (a.fit_summary) card.appendChild(el("div", "", a.fit_summary));
+
+  const matched = (a.matched_skills || []);
+  const missing = (a.missing_skills || []);
+  if (matched.length) {
+    card.appendChild(el("div", "label", "You have"));
+    card.appendChild(chips(matched.map((x) => x.skill), "good"));
+  }
+  if (missing.length) {
+    card.appendChild(el("div", "label", "Missing"));
+    card.appendChild(chips(missing.map((x) => x.skill), "bad"));
+  }
+  if ((a.suggestions || []).length) {
+    card.appendChild(el("div", "label", "How to improve your resume for this role"));
+    const ul = el("ul");
+    a.suggestions.forEach((s) => ul.appendChild(el("li", "", s)));
+    card.appendChild(ul);
+  }
+
+  const evidence = matched.filter((x) => x.resume_evidence);
+  const gaps = missing.filter((x) => x.jd_evidence);
+  if (evidence.length || gaps.length) {
+    const d = el("details");
+    d.appendChild(el("summary", "", "Show evidence"));
+    evidence.forEach((x) => d.appendChild(el("div", "quote", "Resume (" + x.skill + "): “" + x.resume_evidence + "”")));
+    gaps.forEach((x) => d.appendChild(el("div", "quote", "Job asks (" + x.skill + "): “" + x.jd_evidence + "”")));
+    card.appendChild(d);
+  }
+
+  const src = a.source === "llm" ? "AI analysis, quotes verified against your resume and the posting" : "Keyword-based analysis";
+  card.appendChild(el("div", "meta",
+    src + " · skill overlap " + Math.round(m.skill_overlap * 100) + "%"));
+
+  // Keep the vector metrics visible (not hidden inside a collapsed disclosure).
+  // API field name is embed_similarity; use safe fallbacks for older server versions.
+  const similarity = Number(m.embed_similarity ?? m.embed_sim ?? 0);
+  const cosineDistance = Number(m.cosine_distance ?? (1 - similarity));
+  const euclideanDistance = Number(m.euclidean_distance ?? Math.sqrt(Math.max(0, 2 - 2 * similarity)));
+  const metrics = el("div", "vector-metrics");
+  metrics.appendChild(el("div", "label", "Embedding & vector distance details"));
+  const metricList = el("ul");
+  metricList.appendChild(el("li", "", "Embedding cosine similarity: " + similarity.toFixed(4) + " (" + (Number(m.embedding_score_pct ?? similarity * 100)).toFixed(2) + "%)"));
+  metricList.appendChild(el("li", "", "Cosine distance: " + cosineDistance.toFixed(4) + " (lower means closer)"));
+  metricList.appendChild(el("li", "", "Euclidean distance: " + euclideanDistance.toFixed(4) + " (lower means closer)"));
+  metrics.appendChild(metricList);
+  metrics.appendChild(el("div", "note", "Distances compare the resume section vector that best matched this job with the job vector stored in FAISS. Both vectors are L2-normalized."));
+  card.appendChild(metrics);
+  return card;
+}
+
+const MAX_BYTES = 2 * 1024 * 1024;
+let selected = null;
+
+function formatSize(bytes) {
+  return bytes < 1024 * 1024 ? Math.max(1, Math.round(bytes / 1024)) + " KB" : (bytes / 1024 / 1024).toFixed(1) + " MB";
+}
+
+function setFile(file) {
+  $("status").replaceChildren();
+  $("results").replaceChildren();
+  selected = null;
+  if (file) {
+    const ext = file.name.split(".").pop().toLowerCase();
+    if (!["pdf", "docx", "txt"].includes(ext)) {
+      $("status").appendChild(el("div", "err", "Unsupported file type. Please choose a PDF, DOCX or TXT file."));
+    } else if (file.size > MAX_BYTES) {
+      $("status").appendChild(el("div", "err", "That file is " + formatSize(file.size) + ". The limit is 2 MB."));
+    } else {
+      selected = file;
+    }
+  }
+  $("fileName").textContent = selected ? selected.name : "";
+  $("fileState").textContent = selected ? "Selected · " + formatSize(selected.size) + " · ready to analyse" : "";
+  $("fileCard").hidden = !selected;
+  $("drop").hidden = !!selected;
+  $("go").disabled = !selected;
+  if (!selected) $("file").value = "";
+}
+
+$("file").addEventListener("change", (e) => setFile(e.target.files[0]));
+$("remove").addEventListener("click", () => setFile(null));
+["dragenter", "dragover"].forEach((t) => $("drop").addEventListener(t, (e) => { e.preventDefault(); $("drop").classList.add("over"); }));
+["dragleave", "drop"].forEach((t) => $("drop").addEventListener(t, (e) => { e.preventDefault(); $("drop").classList.remove("over"); }));
+$("drop").addEventListener("drop", (e) => setFile(e.dataTransfer.files[0]));
+
+// XMLHttpRequest instead of fetch, because fetch cannot report upload progress.
+function upload(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/match");
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+    xhr.upload.onload = () => onProgress(1);
+    xhr.onerror = () => reject(new Error("Could not reach the server. Is it running?"));
+    xhr.onload = () => {
+      let data = {};
+      try { data = JSON.parse(xhr.responseText); } catch (_) {}
+      if (xhr.status >= 200 && xhr.status < 300) resolve(data);
+      else reject(new Error(data.detail || "Something went wrong (" + xhr.status + ")."));
+    };
+    const body = new FormData();
+    body.append("file", file);
+    xhr.send(body);
+  });
+}
+
+async function run() {
+  const file = selected;
+  $("status").replaceChildren();
+  $("results").replaceChildren();
+  if (!file) { $("status").appendChild(el("div", "err", "Please choose a file first.")); return; }
+
+  const btn = $("go");
+  const progress = $("progress");
+  btn.disabled = true;
+  $("remove").disabled = true;
+  btn.textContent = "Uploading…";
+  $("fileState").textContent = "Uploading…";
+  progress.hidden = false;
+  progress.classList.remove("busy");
+  $("progressBar").style.width = "0";
+  try {
+    const data = await upload(file, (fraction) => {
+      $("progressBar").style.width = Math.round(fraction * 100) + "%";
+      if (fraction >= 1) {
+        progress.classList.add("busy");
+        btn.textContent = "Analysing… (the first request can take up to a minute)";
+        $("fileState").textContent = "Uploaded ✓ · analysing your resume…";
+      }
+    });
+    $("fileState").textContent = "Uploaded and analysed ✓ · " + formatSize(file.size);
+
+    (data.warnings || []).forEach((w) => $("status").appendChild(el("div", "warn", "ℹ " + w)));
+    const skills = (data.profile.skills || []).map((s) => s.name);
+    if (skills.length) {
+      const box = el("div", "card");
+      box.appendChild(el("div", "label", "Skills found in your resume"));
+      box.appendChild(chips(skills, "good"));
+      $("results").appendChild(box);
+    }
+    (data.matches || []).forEach((m) => $("results").appendChild(renderMatch(m)));
+  } catch (err) {
+    $("status").appendChild(el("div", "err", err.message));
+    $("fileState").textContent = "Selected · " + formatSize(file.size) + " · ready to try again";
+  } finally {
+    progress.hidden = true;
+    progress.classList.remove("busy");
+    btn.disabled = false;
+    $("remove").disabled = false;
+    btn.textContent = "Find matches";
+  }
+}
+$("go").addEventListener("click", run);
+</script>
+</body>
+</html>

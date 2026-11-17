@@ -1,0 +1,20 @@
+Meera Iyer
+meera.iyer@example.com | +91 99887 77665
+
+SUMMARY
+Data scientist with 2 years of experience building machine learning models.
+
+SKILLS
+Python, Pandas, NumPy, Scikit-learn, SQL, Statistics, Machine Learning, PyTorch
+
+EXPERIENCE
+Data Scientist - Acme Analytics (2023 - 2025)
+- Built a churn prediction model with scikit-learn and Pandas, improving recall by 12%.
+- Wrote SQL queries to prepare training datasets from a PostgreSQL warehouse.
+- Ran experiments and reported statistical significance to product managers.
+
+PROJECTS
+Review classifier - fine-tuned a transformer with Hugging Face for sentiment analysis.
+
+EDUCATION
+M.Sc. Statistics, 2023

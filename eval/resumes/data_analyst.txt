@@ -1,0 +1,20 @@
+Karthik Raj
+karthik.raj@example.com | +91 90000 11122
+
+SUMMARY
+Data analyst who turns messy data into clear dashboards for business teams.
+
+SKILLS
+SQL, Excel, Tableau, Power BI, Data Analysis, Data Visualization, Python, Pandas
+
+EXPERIENCE
+Business Analyst - Retail Insights (2022 - 2025)
+- Built Tableau dashboards that tracked weekly sales across 40 stores.
+- Wrote SQL queries and Excel models to forecast demand.
+- Ran A/B testing on promotions and presented the results to leadership.
+
+PROJECTS
+Customer segmentation - Pandas analysis with visual summaries.
+
+EDUCATION
+B.Com, 2022
